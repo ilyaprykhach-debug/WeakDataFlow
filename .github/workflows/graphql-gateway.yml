@@ -4,12 +4,12 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'GraphQLApiGateway/**'
+      - 'GraphQL.ApiGateway/**'
       - '.github/workflows/graphql-gateway.yml'
   pull_request:
     branches: [ main ]
     paths:
-      - 'GraphQLApiGateway/**'
+      - 'GraphQL.ApiGateway/**'
 
 jobs:
   build-and-test:
@@ -36,7 +36,7 @@ jobs:
       run: dotnet restore WeakDataFlow.sln
 
     - name: Build
-      run: dotnet build GraphQLApiGateway/GraphQLApiGateway.csproj --configuration Release --no-restore
+      run: dotnet build GraphQL.ApiGateway/GraphQL.ApiGateway.csproj --configuration Release --no-restore
 
     - name: Lint code
       run: |
@@ -44,7 +44,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t graphql-gateway:latest -f GraphQLApiGateway/Dockerfile .
+        docker build -t graphql-gateway:latest -f GraphQL.ApiGateway/Dockerfile .
 
     - name: Log build info
       run: |
