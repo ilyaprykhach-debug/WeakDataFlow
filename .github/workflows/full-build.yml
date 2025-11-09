@@ -44,7 +44,7 @@ jobs:
     - name: Lint all .NET projects
       run: |
         echo "Linting .NET projects..."
-        for project in DataFlow.Service DataIngestor.Service DataProcessor.Service GraphQLApiGateway Notification.Service; do
+        for project in DataFlow.Service DataIngestor.Service DataProcessor.Service GraphQL.ApiGateway Notification.Service; do
           if [ -f "$project/$project.csproj" ]; then
             echo "Linting $project"
             dotnet format "$project/$project.csproj" --verify-no-changes --verbosity minimal || echo "⚠️ No changes needed or linting skipped"
@@ -62,9 +62,9 @@ jobs:
       run: |
         docker build -t data-ingestor:latest -f DataIngestor.Service/Dockerfile .
         docker build -t data-processor:latest -f DataProcessor.Service/Dockerfile .
-        docker build -t graphql-gateway:latest -f GraphQLApiGateway/Dockerfile .
+        docker build -t graphql-gateway:latest -f GraphQL.ApiGateway/Dockerfile .
         docker build -t notification-service:latest -f Notification.Service/Dockerfile .
-        docker build -t frontend-app:latest -f .Frontend.App/frontend.app.client/Dockerfile .
+        docker build -t frontend-app:latest -f Frontend.App/frontend.app.client/Dockerfile .
 
     - name: Test with docker-compose
       run: |
