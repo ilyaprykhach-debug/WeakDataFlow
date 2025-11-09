@@ -52,7 +52,7 @@ jobs:
         done
 
     - name: Build frontend
-      working-directory: .Frontend.App/frontend.app.client
+      working-directory: Frontend.App/frontend.app.client
       run: |
         npm ci
         npx tsc --noEmit || echo "TypeScript check completed"
