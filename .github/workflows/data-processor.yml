@@ -1,0 +1,57 @@
+name: DataProcessor Service CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'DataProcessor.Service/**'
+      - '.github/workflows/data-processor.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'DataProcessor.Service/**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+          
+    - name: Restore dependencies
+      run: dotnet restore WeakDataFlow.sln
+
+    - name: Build
+      run: dotnet build DataProcessor.Service/DataProcessor.Service.csproj --configuration Release --no-restore
+
+    - name: Lint code
+      run: |
+        dotnet format DataProcessor.Service/DataProcessor.Service.csproj --verify-no-changes --verbosity detailed
+
+    - name: Build Docker image
+      run: |
+        docker build -t data-processor:latest -f DataProcessor.Service/Dockerfile .
+
+    - name: Test Docker image
+      run: |
+        docker run --rm --network host data-processor:latest dotnet test
+
+    - name: Log build info
+      run: |
+        echo "Build completed successfully for DataIngestor.Service"
+        echo "Branch: ${{ github.ref }}"
+        echo "Commit: ${{ github.sha }}"
