@@ -52,7 +52,7 @@ jobs:
         done
 
     - name: Build frontend
-      working-directory: ./frontend.app.client
+      working-directory: .Frontend.App/frontend.app.client
       run: |
         npm ci
         npx tsc --noEmit || echo "TypeScript check completed"
@@ -64,7 +64,7 @@ jobs:
         docker build -t data-processor:latest -f DataProcessor.Service/Dockerfile .
         docker build -t graphql-gateway:latest -f GraphQLApiGateway/Dockerfile .
         docker build -t notification-service:latest -f Notification.Service/Dockerfile .
-        docker build -t frontend-app:latest -f frontend.app.client/Dockerfile .
+        docker build -t frontend-app:latest -f .Frontend.App/frontend.app.client/Dockerfile .
 
     - name: Test with docker-compose
       run: |
