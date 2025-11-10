@@ -1,6 +1,6 @@
 FROM node:24-alpine AS builder
 WORKDIR /app
-COPY frontend.app.client/package*.json ./
+COPY Frontend.App/frontend.app.client/package*.json ./
 RUN ls -la
 RUN npm ci
 COPY . .
