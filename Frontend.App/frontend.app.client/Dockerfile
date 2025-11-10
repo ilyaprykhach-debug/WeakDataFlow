@@ -14,6 +14,5 @@ RUN echo "Current directory contents:"
 RUN ls -la ./
 RUN echo "Parent directory contents:"
 RUN ls -la ../
-COPY ./nginx.conf /etc/nginx/nginx.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
