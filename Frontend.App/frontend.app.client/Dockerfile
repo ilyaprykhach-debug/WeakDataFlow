@@ -1,19 +1,12 @@
 FROM node:24-alpine AS builder
 WORKDIR /app
 COPY Frontend.App/frontend.app.client/package*.json ./
-RUN ls -la
 RUN npm ci
-COPY . .
+COPY Frontend.App/frontend.app.client/ ./
 RUN npm run build
 
 FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
-RUN ls -la
-RUN find . -name "nginx.conf" -type f
-RUN pwd
-RUN echo "Current directory contents:"
-RUN ls -la ./
-RUN echo "Parent directory contents:"
-RUN ls -la ../
+COPY nginx.conf /etc/nginx/nginx.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
