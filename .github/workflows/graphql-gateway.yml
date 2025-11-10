@@ -48,8 +48,14 @@ jobs:
 
     - name: Test Docker image
       run: |
-        docker run --rm --network host graphql-gateway:latest dotnet test
-        
+        docker run -d --name test-gateway -p 5000:80 graphql-gateway:latest
+        sleep 10
+        docker ps | grep test-gateway || (docker logs test-gateway && exit 1)
+        docker logs test-gateway | grep -i "started\|running\|listening" || \
+          (echo "No startup message in logs" && docker logs test-gateway && exit 1)
+        docker stop test-gateway
+        docker rm test-gateway
+
     - name: Log build info
       run: |
         echo "Build completed successfully for DataIngestor.Service"

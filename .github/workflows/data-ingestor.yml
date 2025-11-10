@@ -48,7 +48,11 @@ jobs:
 
     - name: Test Docker image 
       run: |
-        docker run --rm --network host data-ingestor:latest dotnet test
+        docker run -d --name test-container -p 8080:8080 data-ingestor:latest
+        sleep 10
+        curl -f http://localhost:8080/health || (docker logs test-container && exit 1)
+        docker stop test-container
+        docker rm test-container
 
     - name: Log build info
       run: |

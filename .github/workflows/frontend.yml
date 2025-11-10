@@ -49,9 +49,13 @@ jobs:
 
     - name: Test Docker image
       run: |
-        docker run --rm -p 3000:80 frontend-app:latest &
+        docker run -d --name frontend-test -p 3000:80 frontend-app:latest
         sleep 10
-        curl -f http://localhost:3000 || exit 1
+        docker ps | grep frontend-test || (docker logs frontend-test && exit 1)
+        curl -f http://localhost:3000 > /dev/null || (docker logs frontend-test && exit 1)
+        curl -s http://localhost:3000 | head -n 5
+        docker stop frontend-test
+        docker rm frontend-test
 
     - name: Log build info
       run: |

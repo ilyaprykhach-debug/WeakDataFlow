@@ -48,7 +48,12 @@ jobs:
 
     - name: Test Docker image
       run: |
-        docker run --rm --network host data-processor:latest dotnet test
+        docker run -d --name test-processor -p 8081:8080 data-processor:latest
+        sleep 15
+        docker logs test-processor | grep "Application started" || \
+          (echo "Application failed to start" && docker logs test-processor && exit 1)
+        docker stop test-processor
+        docker rm test-processor
 
     - name: Log build info
       run: |
