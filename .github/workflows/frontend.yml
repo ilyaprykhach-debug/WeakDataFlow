@@ -4,12 +4,12 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'frontend.app.client/**'
+      - 'Frontend.App/frontend.app.client/**'
       - '.github/workflows/frontend.yml'
   pull_request:
     branches: [ main ]
     paths:
-      - 'frontend.app.client/**'
+      - 'Frontend.App/frontend.app.client/**'
 
 jobs:
   build-and-test:
@@ -24,28 +24,28 @@ jobs:
       with:
         node-version: '24.x'
         cache: 'npm'
-        cache-dependency-path: frontend.app.client/package-lock.json
+        cache-dependency-path: Frontend.App/frontend.app.client/package-lock.json
 
     - name: Install dependencies
-      working-directory: ./frontend.app.client
+      working-directory: ./Frontend.App/frontend.app.client
       run: npm ci
 
     - name: TypeScript type check
-      working-directory: ./frontend.app.client
+      working-directory: ./Frontend.App/frontend.app.client
       run: npx tsc --noEmit
 
     - name: Lint code
-      working-directory: ./frontend.app.client
+      working-directory: ./Frontend.App/frontend.app.client
       run: |
         npm run lint
 
     - name: Build project
-      working-directory: ./frontend.app.client
+      working-directory: ./Frontend.App/frontend.app.client
       run: npm run build
 
     - name: Build Docker image
       run: |
-        docker build -t frontend-app:latest -f frontend.app.client/Dockerfile .
+        docker build -t frontend-app:latest -f Frontend.App/frontend.app.client/Dockerfile .
 
     - name: Test Docker image
       run: |
@@ -55,6 +55,6 @@ jobs:
 
     - name: Log build info
       run: |
-        echo "Build completed successfully for DataIngestor.Service"
+        echo "Build completed successfully for Frontend App"
         echo "Branch: ${{ github.ref }}"
         echo "Commit: ${{ github.sha }}"
