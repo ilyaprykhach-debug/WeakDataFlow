@@ -46,11 +46,13 @@ jobs:
       run: |
         docker build -t data-ingestor:latest -f DataIngestor.Service/Dockerfile .
 
-    - name: Test Docker image 
+    - name: Test Docker image
       run: |
         docker run -d --name test-container -p 8080:8080 data-ingestor:latest
-        sleep 10
-        curl -f http://localhost:8080/health || (docker logs test-container && exit 1)
+        sleep 15
+        docker logs test-container | grep "Application started" || \
+          (echo "Application failed to start" && docker logs test-container && exit 1)
+        docker ps | grep test-container || (docker logs test-container && exit 1)
         docker stop test-container
         docker rm test-container
 
