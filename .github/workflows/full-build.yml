@@ -60,11 +60,11 @@ jobs:
 
     - name: Build all Docker images
       run: |
-        docker build -t data-ingestor:latest -f DataIngestor.Service/Dockerfile .
-        docker build -t data-processor:latest -f DataProcessor.Service/Dockerfile .
-        docker build -t graphql-gateway:latest -f GraphQL.ApiGateway/Dockerfile .
-        docker build -t notification-service:latest -f Notification.Service/Dockerfile .
-        docker build -t frontend-app:latest -f Frontend.App/frontend.app.client/Dockerfile .
+        docker build --no-cache -t data-ingestor:latest -f DataIngestor.Service/Dockerfile .
+        docker build --no-cache -t data-processor:latest -f DataProcessor.Service/Dockerfile .
+        docker build --no-cache -t graphql-gateway:latest -f GraphQL.ApiGateway/Dockerfile .
+        docker build --no-cache -t notification-service:latest -f Notification.Service/Dockerfile .
+        docker build --no-cache -t frontend-app:latest -f Frontend.App/frontend.app.client/Dockerfile .
 
     - name: Test with docker-compose
       run: |
