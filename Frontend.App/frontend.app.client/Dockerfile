@@ -1,7 +1,8 @@
 FROM node:24-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN ls -la
+RUN npm ci
 COPY . .
 RUN npm run build
 

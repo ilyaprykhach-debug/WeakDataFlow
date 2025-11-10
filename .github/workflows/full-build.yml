@@ -64,7 +64,7 @@ jobs:
         docker build --no-cache -t data-processor:latest -f DataProcessor.Service/Dockerfile .
         docker build --no-cache -t graphql-gateway:latest -f GraphQL.ApiGateway/Dockerfile .
         docker build --no-cache -t notification-service:latest -f Notification.Service/Dockerfile .
-        docker build --no-cache -t frontend-app:latest -f Frontend.App/frontend.app.client/Dockerfile .
+        docker build --progress=plain --no-cache -t frontend-app:latest -f Frontend.App/frontend.app.client/Dockerfile .
 
     - name: Test with docker-compose
       run: |
