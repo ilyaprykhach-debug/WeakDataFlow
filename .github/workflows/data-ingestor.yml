@@ -46,9 +46,9 @@ jobs:
       run: |
         docker build -t data-ingestor:latest -f DataIngestor.Service/Dockerfile .
 
-    - name: Run container tests
+    - name: Test Docker image 
       run: |
-        docker run --rm data-ingestor:latest dotnet test
+        docker run --rm --network host data-ingestor:latest dotnet test
 
     - name: Log build info
       run: |

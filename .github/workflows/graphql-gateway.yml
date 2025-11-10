@@ -46,6 +46,10 @@ jobs:
       run: |
         docker build -t graphql-gateway:latest -f GraphQL.ApiGateway/Dockerfile .
 
+    - name: Test Docker image
+      run: |
+        docker run --rm --network host graphql-gateway:latest dotnet test
+        
     - name: Log build info
       run: |
         echo "Build completed successfully for DataIngestor.Service"
