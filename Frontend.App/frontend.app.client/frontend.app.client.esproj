@@ -8,4 +8,9 @@
     <!-- Folder where production build objects will be placed -->
     <BuildOutputFolder>$(MSBuildProjectDirectory)\dist</BuildOutputFolder>
   </PropertyGroup>
+
+	<ItemGroup>
+		<None Include="Dockerfile" />
+		<None Include="nginx.conf" />
+	</ItemGroup>
 </Project>

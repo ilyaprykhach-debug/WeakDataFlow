@@ -1,0 +1,60 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'frontend.app.client/**'
+      - '.github/workflows/frontend.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'frontend.app.client/**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24.x'
+        cache: 'npm'
+        cache-dependency-path: frontend.app.client/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./frontend.app.client
+      run: npm ci
+
+    - name: TypeScript type check
+      working-directory: ./frontend.app.client
+      run: npx tsc --noEmit
+
+    - name: Lint code
+      working-directory: ./frontend.app.client
+      run: |
+        npm run lint
+
+    - name: Build project
+      working-directory: ./frontend.app.client
+      run: npm run build
+
+    - name: Build Docker image
+      run: |
+        docker build -t frontend-app:latest -f frontend.app.client/Dockerfile .
+
+    - name: Test Docker image
+      run: |
+        docker run --rm -p 3000:80 frontend-app:latest &
+        sleep 10
+        curl -f http://localhost:3000 || exit 1
+
+    - name: Log build info
+      run: |
+        echo "Build completed successfully for DataIngestor.Service"
+        echo "Branch: ${{ github.ref }}"
+        echo "Commit: ${{ github.sha }}"

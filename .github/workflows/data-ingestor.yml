@@ -1,0 +1,57 @@
+name: DataIngestor Service CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'DataIngestor.Service/**'
+      - '.github/workflows/data-ingestor.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'DataIngestor.Service/**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+      
+    - name: Restore dependencies
+      run: dotnet restore WeakDataFlow.sln
+
+    - name: Build
+      run: dotnet build DataIngestor.Service/DataIngestor.Service.csproj --configuration Release --no-restore
+
+    - name: Lint code
+      run: |
+        dotnet format DataIngestor.Service/DataIngestor.Service.csproj --verify-no-changes --verbosity detailed
+
+    - name: Build Docker image
+      run: |
+        docker build -t data-ingestor:latest -f DataIngestor.Service/Dockerfile .
+
+    - name: Test Docker image 
+      run: |
+        docker run --rm --network host data-ingestor:latest dotnet test
+
+    - name: Log build info
+      run: |
+        echo "Build completed successfully for DataIngestor.Service"
+        echo "Branch: ${{ github.ref }}"
+        echo "Commit: ${{ github.sha }}"
