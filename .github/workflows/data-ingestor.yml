@@ -53,6 +53,16 @@ jobs:
       run: |
         dotnet format DataIngestor.Service/DataIngestor.Service.csproj --verify-no-changes --verbosity detailed
 
+    - name: Run Unit Tests
+      run: |
+        dotnet test DataIngestor.Service.UnitTests/DataIngestor.Service.UnitTests.csproj --configuration Release --no-restore --verbosity normal --logger "trx;LogFileName=unit-test-results.trx" --collect:"XPlat Code Coverage"
+      continue-on-error: false
+
+    - name: Run Integration Tests
+      run: |
+        dotnet test DataIngestor.Service.IntegrationTests/DataIngestor.Service.IntegrationTests.csproj --configuration Release --no-restore --verbosity normal --logger "trx;LogFileName=integration-test-results.trx" --collect:"XPlat Code Coverage"
+      continue-on-error: false
+
     - name: Build Docker image
       run: |
         docker build -t data-ingestor:latest -f DataIngestor.Service/Dockerfile .
