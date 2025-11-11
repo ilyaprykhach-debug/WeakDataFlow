@@ -4,20 +4,28 @@ using Serilog;
 using System.Net.Mime;
 using System.Text.Json;
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-    .CreateBootstrapLogger();
+// Check if we're in testing environment
+var builder = WebApplication.CreateBuilder(args);
+var isTesting = builder.Environment.IsEnvironment("Testing");
 
 try
 {
-    var builder = WebApplication.CreateBuilder(args);
+    // Only configure Serilog if not in testing environment
+    // WebApplicationFactory will handle running the app, so we skip app.Run() in Testing
+    
+    if (!isTesting)
+    {
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .CreateBootstrapLogger();
 
-    builder.Host.UseSerilog((context, services, configuration) => configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-        .WriteTo.File("logs/datainingestor-.txt", rollingInterval: RollingInterval.Day));
+        builder.Host.UseSerilog((context, services, configuration) => configuration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.FromLogContext()
+            .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .WriteTo.File("logs/datainingestor-.txt", rollingInterval: RollingInterval.Day));
+    }
 
     builder.Services.AddDataIngestor(builder.Configuration);
 
@@ -48,14 +56,26 @@ try
 
     app.MapControllers();
 
-    Log.Information("Starting DataIngestor service...");
-    app.Run();
+    // Don't run the app if it's being used for integration tests
+    // WebApplicationFactory will handle running the app through IHost
+    if (!isTesting)
+    {
+        Log.Information("Starting DataIngestor service...");
+        app.Run();
+    }
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Application terminated unexpectedly");
+    if (!isTesting)
+    {
+        Log.Fatal(ex, "Application terminated unexpectedly");
+    }
+    throw; // Re-throw in testing to let WebApplicationFactory handle it
 }
 finally
 {
-    Log.CloseAndFlush();
+    if (!isTesting)
+    {
+        Log.CloseAndFlush();
+    }
 }
