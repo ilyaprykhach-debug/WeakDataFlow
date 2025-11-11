@@ -4,20 +4,24 @@ using Serilog;
 using System.Net.Mime;
 using System.Text.Json;
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-    .CreateBootstrapLogger();
+var builder = WebApplication.CreateBuilder(args);
+var isTesting = builder.Environment.IsEnvironment("Testing");
 
 try
 {
-    var builder = WebApplication.CreateBuilder(args);
+    if (!isTesting)
+    {
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .CreateBootstrapLogger();
 
-    builder.Host.UseSerilog((context, services, configuration) => configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-        .WriteTo.File("logs/datainingestor-.txt", rollingInterval: RollingInterval.Day));
+        builder.Host.UseSerilog((context, services, configuration) => configuration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.FromLogContext()
+            .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .WriteTo.File("logs/datainingestor-.txt", rollingInterval: RollingInterval.Day));
+    }
 
     builder.Services.AddDataIngestor(builder.Configuration);
 
@@ -48,14 +52,24 @@ try
 
     app.MapControllers();
 
-    Log.Information("Starting DataIngestor service...");
-    app.Run();
+    if (!isTesting)
+    {
+        Log.Information("Starting DataIngestor service...");
+        app.Run();
+    }
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Application terminated unexpectedly");
+    if (!isTesting)
+    {
+        Log.Fatal(ex, "Application terminated unexpectedly");
+    }
+    throw;
 }
 finally
 {
-    Log.CloseAndFlush();
+    if (!isTesting)
+    {
+        Log.CloseAndFlush();
+    }
 }
