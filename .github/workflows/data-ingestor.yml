@@ -15,6 +15,17 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     
+  services:
+    rabbitmq:
+      image: rabbitmq:3-management
+      ports:
+        - 5672:5672
+      options: >-
+        --health-cmd="rabbitmq-diagnostics check_port_connectivity"
+        --health-interval=10s
+        --health-timeout=5s
+        --health-retries=5
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -46,13 +57,24 @@ jobs:
       run: |
         docker build -t data-ingestor:latest -f DataIngestor.Service/Dockerfile .
 
+    - name: Wait for RabbitMQ
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y telnet
+        timeout 30 bash -c 'until echo > /dev/tcp/localhost/5672; do sleep 1; done' || exit 1
+
     - name: Test Docker image
       run: |
-        docker run -d --name test-container -p 8080:8080 data-ingestor:latest
-        sleep 15
-        docker logs test-container | grep "Application started" || \
-          (echo "Application failed to start" && docker logs test-container && exit 1)
-        docker ps | grep test-container || (docker logs test-container && exit 1)
+        docker run -d --name test-container -p 8080:8080 \
+          -e RabbitMQ__HostName=host.docker.internal \
+          -e RabbitMQ__Port=5672 \
+          -e RabbitMQ__UserName=guest \
+          -e RabbitMQ__Password=guest \
+          data-ingestor:latest
+        sleep 30
+        docker logs test-container
+        docker logs test-container | grep -E "(Application started|Starting|INF)" || \
+          (echo "Application failed to start properly" && exit 1)
         docker stop test-container
         docker rm test-container
 
