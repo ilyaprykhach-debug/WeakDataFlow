@@ -4,15 +4,11 @@ using Serilog;
 using System.Net.Mime;
 using System.Text.Json;
 
-// Check if we're in testing environment
 var builder = WebApplication.CreateBuilder(args);
 var isTesting = builder.Environment.IsEnvironment("Testing");
 
 try
 {
-    // Only configure Serilog if not in testing environment
-    // WebApplicationFactory will handle running the app, so we skip app.Run() in Testing
-    
     if (!isTesting)
     {
         Log.Logger = new LoggerConfiguration()
@@ -56,8 +52,6 @@ try
 
     app.MapControllers();
 
-    // Don't run the app if it's being used for integration tests
-    // WebApplicationFactory will handle running the app through IHost
     if (!isTesting)
     {
         Log.Information("Starting DataIngestor service...");
@@ -70,7 +64,7 @@ catch (Exception ex)
     {
         Log.Fatal(ex, "Application terminated unexpectedly");
     }
-    throw; // Re-throw in testing to let WebApplicationFactory handle it
+    throw;
 }
 finally
 {
