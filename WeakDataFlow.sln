@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36623.8
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataFlow.Service", "DataFlow.Service\DataFlow.Service.csproj", "{D08E6506-64A5-4D7F-ABA8-C44B4301DB5B}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataIngestor.Service", "DataIngestor.Service\DataIngestor.Service.csproj", "{2384038B-52BF-4333-A072-12F7A3A75276}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataProcessor.Service", "DataProcessor.Service\DataProcessor.Service.csproj", "{1C418B1C-52ED-4FD9-93D1-12267317395B}"
@@ -21,10 +19,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D08E6506-64A5-4D7F-ABA8-C44B4301DB5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D08E6506-64A5-4D7F-ABA8-C44B4301DB5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D08E6506-64A5-4D7F-ABA8-C44B4301DB5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D08E6506-64A5-4D7F-ABA8-C44B4301DB5B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2384038B-52BF-4333-A072-12F7A3A75276}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2384038B-52BF-4333-A072-12F7A3A75276}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2384038B-52BF-4333-A072-12F7A3A75276}.Release|Any CPU.ActiveCfg = Release|Any CPU
