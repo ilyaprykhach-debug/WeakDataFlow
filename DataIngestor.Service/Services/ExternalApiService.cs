@@ -10,16 +10,19 @@ public class ExternalApiService : IExternalApiService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<ExternalApiService> _logger;
-    private readonly ExternalApiConfig _config;
+    private readonly ExternalApiConnectionConfig _connectionConfig;
+    private readonly ExternalApiHeadersConfig _headersConfig;
 
     public ExternalApiService(
         HttpClient httpClient,
         ILogger<ExternalApiService> logger,
-        IOptions<ExternalApiConfig> config)
+        IOptions<ExternalApiConnectionConfig> connectionConfig,
+        IOptions<ExternalApiHeadersConfig> headersConfig)
     {
         _httpClient = httpClient;
         _logger = logger;
-        _config = config.Value;
+        _connectionConfig = connectionConfig.Value;
+        _headersConfig = headersConfig.Value;
     }
 
     public async Task<List<SensorReading>> FetchDataAsync(CancellationToken cancellationToken = default)
@@ -28,10 +31,10 @@ public class ExternalApiService : IExternalApiService
         {
             _logger.LogDebug("Fetching data from WeakApp API...");
 
-            var metersUrl = $"{_config.BaseUrl}/meters";
+            var metersUrl = $"{_connectionConfig.BaseUrl}/meters";
 
             using var request = new HttpRequestMessage(HttpMethod.Get, metersUrl);
-            request.Headers.Add("X-Api-Key", _config.Headers.XApiKey);
+            request.Headers.Add("X-Api-Key", _headersConfig.XApiKey);
 
             _logger.LogDebug("Sending request to: {Url}", metersUrl);
             _logger.LogDebug("Headers: {Headers}", string.Join(", ", request.Headers.Select(h => $"{h.Key}: {string.Join(", ", h.Value)}")));
@@ -76,10 +79,10 @@ public class ExternalApiService : IExternalApiService
     {
         try
         {
-            var healthUrl = $"{_config.BaseUrl}/health";
+            var healthUrl = $"{_connectionConfig.BaseUrl}/health";
 
             using var request = new HttpRequestMessage(HttpMethod.Get, healthUrl);
-            request.Headers.Add("X-Api-Key", _config.Headers.XApiKey);
+            request.Headers.Add("X-Api-Key", _headersConfig.XApiKey);
 
             _logger.LogDebug("Health check to: {Url}", healthUrl);
 

@@ -68,9 +68,10 @@ public class ExternalApiIntegrationTests : IClassFixture<CustomWebApplicationFac
         };
 
         using var scope = _factory.Services.CreateScope();
-        var config = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<DataIngestor.Service.Configuration.ExternalApiConfig>>();
+        var connectionConfig = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<DataIngestor.Service.Configuration.ExternalApiConnectionConfig>>();
+        var headersConfig = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<DataIngestor.Service.Configuration.ExternalApiHeadersConfig>>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<DataIngestor.Service.Services.ExternalApiService>>();
-        var service = new DataIngestor.Service.Services.ExternalApiService(httpClient, logger, config);
+        var service = new DataIngestor.Service.Services.ExternalApiService(httpClient, logger, connectionConfig, headersConfig);
 
         // Act
         var result = await service.FetchDataAsync();

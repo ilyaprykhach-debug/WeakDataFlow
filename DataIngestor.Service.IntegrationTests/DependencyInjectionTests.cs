@@ -55,13 +55,17 @@ public class DependencyInjectionTests : IClassFixture<CustomWebApplicationFactor
         var serviceProvider = scope.ServiceProvider;
 
         // Act
-        var apiConfig = serviceProvider.GetService<Microsoft.Extensions.Options.IOptions<DataIngestor.Service.Configuration.ExternalApiConfig>>();
+        var connectionConfig = serviceProvider.GetService<Microsoft.Extensions.Options.IOptions<DataIngestor.Service.Configuration.ExternalApiConnectionConfig>>();
+        var retryConfig = serviceProvider.GetService<Microsoft.Extensions.Options.IOptions<DataIngestor.Service.Configuration.ExternalApiRetryConfig>>();
+        var headersConfig = serviceProvider.GetService<Microsoft.Extensions.Options.IOptions<DataIngestor.Service.Configuration.ExternalApiHeadersConfig>>();
         var queueConfig = serviceProvider.GetService<Microsoft.Extensions.Options.IOptions<DataIngestor.Service.Configuration.QueueConfig>>();
         var ingestionConfig = serviceProvider.GetService<Microsoft.Extensions.Options.IOptions<DataIngestor.Service.Configuration.DataIngestionConfig>>();
 
         // Assert
-        apiConfig.Should().NotBeNull();
-        apiConfig!.Value.BaseUrl.Should().Be("http://localhost:8080");
+        connectionConfig.Should().NotBeNull();
+        connectionConfig!.Value.BaseUrl.Should().Be("http://localhost:8080");
+        retryConfig.Should().NotBeNull();
+        headersConfig.Should().NotBeNull();
 
         queueConfig.Should().NotBeNull();
         queueConfig!.Value.Host.Should().Be("localhost");

@@ -14,9 +14,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                { "ExternalApi:BaseUrl", "http://localhost:8080" },
-                { "ExternalApi:TimeoutSeconds", "30" },
-                { "ExternalApi:RetryCount", "3" },
+                { "ExternalApi:Connection:BaseUrl", "http://localhost:8080" },
+                { "ExternalApi:Connection:TimeoutSeconds", "30" },
+                { "ExternalApi:Retry:RetryCount", "3" },
                 { "ExternalApi:Headers:XApiKey", "test-api-key" },
                 { "Queue:Host", "localhost" },
                 { "Queue:Port", "5672" },

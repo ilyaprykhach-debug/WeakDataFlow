@@ -16,14 +16,16 @@ public static class DataIngestorServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.Configure<ExternalApiConfig>(configuration.GetSection("ExternalApi"));
+        services.Configure<ExternalApiConnectionConfig>(configuration.GetSection("ExternalApi:Connection"));
+        services.Configure<ExternalApiRetryConfig>(configuration.GetSection("ExternalApi:Retry"));
+        services.Configure<ExternalApiHeadersConfig>(configuration.GetSection("ExternalApi:Headers"));
         services.Configure<QueueConfig>(configuration.GetSection("Queue"));
         services.Configure<DataIngestionConfig>(configuration.GetSection("DataIngestion"));
 
         services.AddHttpClient<IExternalApiService, ExternalApiService>((provider, client) =>
         {
-            var apiConfig = configuration.GetSection("ExternalApi");
-            client.Timeout = TimeSpan.FromSeconds(apiConfig.GetValue("TimeoutSeconds", 30));
+            var connectionConfig = configuration.GetSection("ExternalApi:Connection");
+            client.Timeout = TimeSpan.FromSeconds(connectionConfig.GetValue("TimeoutSeconds", 30));
         })
         .AddPolicyHandler(GetRetryPolicy(configuration))
         .AddPolicyHandler(GetCircuitBreakerPolicy());
@@ -50,7 +52,8 @@ public static class DataIngestorServiceCollectionExtensions
 
     private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IConfiguration configuration)
     {
-        var retryCount = configuration.GetValue("ExternalApi:RetryCount", 3);
+        var retryConfig = configuration.GetSection("ExternalApi:Retry");
+        var retryCount = retryConfig.GetValue("RetryCount", 3);
 
         return HttpPolicyExtensions
             .HandleTransientHttpError()

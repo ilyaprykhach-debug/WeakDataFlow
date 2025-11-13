@@ -6,17 +6,34 @@ namespace DataIngestor.Service.UnitTests.Configuration;
 public class ConfigurationTests
 {
     [Fact]
-    public void ExternalApiConfig_ShouldHaveDefaultValues()
+    public void ExternalApiConnectionConfig_ShouldHaveDefaultValues()
     {
         // Arrange & Act
-        var config = new ExternalApiConfig();
+        var config = new ExternalApiConnectionConfig();
 
         // Assert
         config.BaseUrl.Should().Be("http://weakapp:8080");
         config.TimeoutSeconds.Should().Be(30);
+    }
+
+    [Fact]
+    public void ExternalApiRetryConfig_ShouldHaveDefaultValues()
+    {
+        // Arrange & Act
+        var config = new ExternalApiRetryConfig();
+
+        // Assert
         config.RetryCount.Should().Be(3);
-        config.Headers.Should().NotBeNull();
-        config.Headers.XApiKey.Should().Be("supersecret");
+    }
+
+    [Fact]
+    public void ExternalApiHeadersConfig_ShouldHaveDefaultValues()
+    {
+        // Arrange & Act
+        var config = new ExternalApiHeadersConfig();
+
+        // Assert
+        config.XApiKey.Should().Be("supersecret");
     }
 
     [Fact]
