@@ -32,10 +32,9 @@ public class DataProcessingFlowIntegrationTests : IClassFixture<CustomWebApplica
         _context = _scope.ServiceProvider.GetRequiredService<SensorDataDbContext>();
         _dataProcessor = _scope.ServiceProvider.GetRequiredService<IDataProcessor>();
 
+        // Ensure database is deleted and recreated for complete isolation
+        await _context.Database.EnsureDeletedAsync();
         await _context.Database.EnsureCreatedAsync();
-        
-        _context.SensorReadings.RemoveRange(_context.SensorReadings);
-        await _context.SaveChangesAsync();
 
         using var scope = _factory.Services.CreateScope();
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();

@@ -25,10 +25,9 @@ public class DatabaseIntegrationTests : IClassFixture<CustomWebApplicationFactor
         _context = _scope.ServiceProvider.GetRequiredService<SensorDataDbContext>();
         _databaseService = _scope.ServiceProvider.GetRequiredService<IDatabaseService>();
 
+        // Ensure database is deleted and recreated for complete isolation
+        await _context.Database.EnsureDeletedAsync();
         await _context.Database.EnsureCreatedAsync();
-        
-        _context.SensorReadings.RemoveRange(_context.SensorReadings);
-        await _context.SaveChangesAsync();
     }
 
     public async Task DisposeAsync()

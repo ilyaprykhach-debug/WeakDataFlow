@@ -9,6 +9,14 @@ namespace DataProcessor.Service.IntegrationTests;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
+    private static int _instanceCount = 0;
+    private readonly string _uniqueDbName;
+
+    public CustomWebApplicationFactory()
+    {
+        _instanceCount++;
+        _uniqueDbName = $"TestDb_{_instanceCount}_{Guid.NewGuid()}";
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -43,9 +51,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 services.Remove(descriptor);
             }
 
+            // Use unique database name for each factory instance to ensure test isolation
             services.AddDbContext<SensorDataDbContext>(options =>
             {
-                options.UseInMemoryDatabase("TestDb");
+                options.UseInMemoryDatabase(_uniqueDbName);
             });
         });
     }
