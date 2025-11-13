@@ -5,11 +5,15 @@ on:
     branches: [ main ]
     paths:
       - 'DataProcessor.Service/**'
+      - 'DataProcessor.Service.UnitTests/**'
+      - 'DataProcessor.Service.IntegrationTests/**'
       - '.github/workflows/data-processor.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'DataProcessor.Service/**'
+      - 'DataProcessor.Service.UnitTests/**'
+      - 'DataProcessor.Service.IntegrationTests/**'
 
 jobs:
   build-and-test:
@@ -67,6 +71,11 @@ jobs:
       run: |
         dotnet format DataProcessor.Service/DataProcessor.Service.csproj --verify-no-changes --verbosity detailed
 
+    - name: Run Unit Tests
+      run: |
+        dotnet test DataProcessor.Service.UnitTests/DataProcessor.Service.UnitTests.csproj --configuration Release --no-restore --verbosity normal --logger "trx;LogFileName=unit-test-results.trx" --collect:"XPlat Code Coverage"
+      continue-on-error: false
+
     - name: Wait for RabbitMQ
       run: |
         sudo apt-get update
@@ -76,6 +85,11 @@ jobs:
     - name: Wait for PostgreSQL
       run: |
         timeout 30 bash -c 'until echo > /dev/tcp/localhost/5432; do sleep 1; done' || exit 1
+
+    - name: Run Integration Tests
+      run: |
+        dotnet test DataProcessor.Service.IntegrationTests/DataProcessor.Service.IntegrationTests.csproj --configuration Release --no-restore --verbosity normal --logger "trx;LogFileName=integration-test-results.trx" --collect:"XPlat Code Coverage"
+      continue-on-error: false
 
     - name: Build Docker image
       run: |
