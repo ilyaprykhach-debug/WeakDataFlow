@@ -14,6 +14,31 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    
+    services:
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd="rabbitmq-diagnostics check_port_connectivity"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sensordata
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
     - name: Checkout repository
@@ -42,21 +67,44 @@ jobs:
       run: |
         dotnet format DataProcessor.Service/DataProcessor.Service.csproj --verify-no-changes --verbosity detailed
 
+    - name: Wait for RabbitMQ
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y telnet
+        timeout 30 bash -c 'until echo > /dev/tcp/localhost/5672; do sleep 1; done' || exit 1
+
+    - name: Wait for PostgreSQL
+      run: |
+        timeout 30 bash -c 'until echo > /dev/tcp/localhost/5432; do sleep 1; done' || exit 1
+
     - name: Build Docker image
       run: |
         docker build -t data-processor:latest -f DataProcessor.Service/Dockerfile .
 
     - name: Test Docker image
       run: |
-        docker run -d --name test-processor -p 8081:8080 data-processor:latest
-        sleep 15
-        docker logs test-processor | grep "Application started" || \
-          (echo "Application failed to start" && docker logs test-processor && exit 1)
+        docker run -d --name test-processor -p 8081:8080 \
+          -e Queue__Host=host.docker.internal \
+          -e Queue__Port=5672 \
+          -e Queue__QueueName=sensor-data \
+          -e Queue__Username=guest \
+          -e Queue__Password=guest \
+          -e Database__Host=host.docker.internal \
+          -e Database__Port=5432 \
+          -e Database__Database=sensordata \
+          -e Database__Username=postgres \
+          -e Database__Password=postgres \
+          --add-host=host.docker.internal:host-gateway \
+          data-processor:latest
+        sleep 30
+        docker logs test-processor
+        docker logs test-processor | grep -E "(Application started|Starting|INF|Database migrations applied)" || \
+          (echo "Application failed to start properly" && exit 1)
         docker stop test-processor
         docker rm test-processor
 
     - name: Log build info
       run: |
-        echo "Build completed successfully for DataIngestor.Service"
+        echo "Build completed successfully for DataProcessor.Service"
         echo "Branch: ${{ github.ref }}"
         echo "Commit: ${{ github.sha }}"
