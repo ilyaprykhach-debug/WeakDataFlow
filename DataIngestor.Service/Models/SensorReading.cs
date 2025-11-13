@@ -1,9 +1,8 @@
-﻿using DataIngestor.Service.Interfaces;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace DataIngestor.Service.Models;
 
-public class SensorReading : ISensorReading
+public class SensorReading
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
     public string SensorId { get; set; } = string.Empty;
@@ -29,7 +28,7 @@ public class SensorReading : ISensorReading
         }
     }
 
-    public static SensorReading FromWeakApiResponse(IWeakApiResponse response)
+    public static SensorReading FromWeakApiResponse(WeakApiResponse response)
     {
         var reading = new SensorReading
         {

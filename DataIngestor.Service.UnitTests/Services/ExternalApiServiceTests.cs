@@ -14,7 +14,8 @@ namespace DataIngestor.Service.UnitTests.Services;
 
 public class ExternalApiServiceTests
 {
-    private readonly Mock<IOptions<ExternalApiConfig>> _mockConfig;
+    private readonly Mock<IOptions<ExternalApiConnectionConfig>> _mockConnectionConfig;
+    private readonly Mock<IOptions<ExternalApiHeadersConfig>> _mockHeadersConfig;
     private readonly Mock<ILogger<ExternalApiService>> _mockLogger;
     private readonly Mock<HttpMessageHandler> _mockHttpMessageHandler;
     private readonly HttpClient _httpClient;
@@ -22,16 +23,17 @@ public class ExternalApiServiceTests
 
     public ExternalApiServiceTests()
     {
-        _mockConfig = new Mock<IOptions<ExternalApiConfig>>();
-        _mockConfig.Setup(x => x.Value).Returns(new ExternalApiConfig
+        _mockConnectionConfig = new Mock<IOptions<ExternalApiConnectionConfig>>();
+        _mockConnectionConfig.Setup(x => x.Value).Returns(new ExternalApiConnectionConfig
         {
             BaseUrl = "http://test-api.com",
-            TimeoutSeconds = 30,
-            RetryCount = 3,
-            Headers = new ApiHeaders
-            {
-                XApiKey = "test-api-key"
-            }
+            TimeoutSeconds = 30
+        });
+
+        _mockHeadersConfig = new Mock<IOptions<ExternalApiHeadersConfig>>();
+        _mockHeadersConfig.Setup(x => x.Value).Returns(new ExternalApiHeadersConfig
+        {
+            XApiKey = "test-api-key"
         });
 
         _mockLogger = new Mock<ILogger<ExternalApiService>>();
@@ -42,7 +44,7 @@ public class ExternalApiServiceTests
             BaseAddress = new Uri("http://test-api.com")
         };
 
-        _service = new ExternalApiService(_httpClient, _mockLogger.Object, _mockConfig.Object);
+        _service = new ExternalApiService(_httpClient, _mockLogger.Object, _mockConnectionConfig.Object, _mockHeadersConfig.Object);
     }
 
     [Fact]
