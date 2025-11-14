@@ -2,10 +2,6 @@ using GraphQL.ApiGateway.Data;
 using GraphQL.ApiGateway.Models;
 using GraphQL.ApiGateway.GraphQL.Inputs;
 using GraphQL.ApiGateway.GraphQL.Types;
-using HotChocolate;
-using HotChocolate.Data;
-using HotChocolate.Types;
-using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 
 namespace GraphQL.ApiGateway.GraphQL.Queries;
@@ -31,7 +27,7 @@ public class SensorReadingQueries
         PaginationInputData? pagination = null)
     {
         var query = context.SensorReadings.AsQueryable();
-        
+
         if (pagination != null)
         {
             query = query
@@ -151,7 +147,7 @@ public class SensorReadingQueries
 
     public async Task<List<AggregationResult>> GetAggregationsByTimePeriod(
         [Service(ServiceKind.Resolver)] SensorDataDbContext context,
-        string period = "hour") // hour, day, week, month
+        string period = "hour")
     {
         var query = context.SensorReadings.AsQueryable();
 
@@ -211,7 +207,7 @@ public class SensorReadingQueries
     private async Task<List<AggregationResult>> GetWeekAggregations(IQueryable<SensorReading> query)
     {
         var results = await query
-            .GroupBy(r => new 
+            .GroupBy(r => new
             {
                 r.Timestamp.Year,
                 r.Timestamp.DayOfYear
@@ -231,10 +227,10 @@ public class SensorReadingQueries
             .ToListAsync();
 
         return results
-            .GroupBy(r => new 
-            { 
-                r.Year, 
-                Week = GetWeekNumber(r.SampleDate) 
+            .GroupBy(r => new
+            {
+                r.Year,
+                Week = GetWeekNumber(r.SampleDate)
             })
             .Select(g => new AggregationResult
             {
