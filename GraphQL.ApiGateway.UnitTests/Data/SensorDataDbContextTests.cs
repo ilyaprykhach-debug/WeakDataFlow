@@ -2,7 +2,6 @@ using FluentAssertions;
 using GraphQL.ApiGateway.Data;
 using GraphQL.ApiGateway.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace GraphQL.ApiGateway.UnitTests.Data;
 

@@ -93,7 +93,7 @@ public class DatabaseIntegrationTests : IClassFixture<CustomWebApplicationFactor
         });
         await context.SaveChangesAsync();
 
-        // Act - Filter only by the test records we just added
+        // Act
         var energyReadings = await context.SensorReadings
             .Where(r => testIds.Contains(r.Id) && r.Type == "energy")
             .ToListAsync();
@@ -141,7 +141,7 @@ public class DatabaseIntegrationTests : IClassFixture<CustomWebApplicationFactor
         });
         await context.SaveChangesAsync();
 
-        // Act - Filter only by the test records we just added
+        // Act
         var average = await context.SensorReadings
             .Where(r => testIds.Contains(r.Id))
             .AverageAsync(r => r.EnergyConsumption);

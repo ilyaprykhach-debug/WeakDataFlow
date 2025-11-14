@@ -1,7 +1,6 @@
 using FluentAssertions;
 using GraphQL.ApiGateway.Data;
 using GraphQL.ApiGateway.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Json;
@@ -272,20 +271,15 @@ public class GraphQLQueriesIntegrationTests : IClassFixture<CustomWebApplication
         var response = await _client.PostAsJsonAsync("/graphql", query);
 
         // Assert
-        // HotChocolate returns 200 for GraphQL errors (field doesn't exist) but 400 for parsing errors
-        // Since we're using a non-existent query, it should return 200 with errors in the body
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
         var content = await response.Content.ReadAsStringAsync();
         
-        // If it's 200, it should have errors in the body
-        // If it's 400, it's also a valid error response
         if (response.StatusCode == HttpStatusCode.OK)
         {
             content.Should().Contain("errors");
         }
         else
         {
-            // 400 is also a valid error response for invalid queries
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
     }

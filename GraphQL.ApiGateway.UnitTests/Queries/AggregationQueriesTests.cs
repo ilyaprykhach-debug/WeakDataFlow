@@ -1,7 +1,6 @@
 using FluentAssertions;
 using GraphQL.ApiGateway.Data;
 using GraphQL.ApiGateway.GraphQL.Queries;
-using GraphQL.ApiGateway.GraphQL.Types;
 using GraphQL.ApiGateway.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -110,7 +109,7 @@ public class AggregationQueriesTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().HaveCount(1); // Only Office A has readings in this time range
+        result.Should().HaveCount(1);
         result.First().GroupBy.Should().Be("Office A");
     }
 
@@ -146,7 +145,7 @@ public class AggregationQueriesTests
         // Assert
         result.Should().NotBeNull();
         var energyResult = result.First(r => r.GroupBy == "energy");
-        energyResult.AverageEnergyConsumption.Should().Be(150.25m); // (100.5 + 200.0) / 2
+        energyResult.AverageEnergyConsumption.Should().Be(150.25m);
         energyResult.Count.Should().Be(2);
     }
 
