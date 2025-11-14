@@ -5,15 +5,34 @@ on:
     branches: [ main ]
     paths:
       - 'GraphQL.ApiGateway/**'
+      - 'GraphQL.ApiGateway.UnitTests/**'
+      - 'GraphQL.ApiGateway.IntegrationTests/**'
       - '.github/workflows/graphql-gateway.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'GraphQL.ApiGateway/**'
+      - 'GraphQL.ApiGateway.UnitTests/**'
+      - 'GraphQL.ApiGateway.IntegrationTests/**'
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sensordata
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
     - name: Checkout repository
@@ -40,7 +59,21 @@ jobs:
 
     - name: Lint code
       run: |
-        dotnet format DataProcessor.Service/DataProcessor.Service.csproj --verify-no-changes --verbosity detailed
+        dotnet format GraphQL.ApiGateway/GraphQL.ApiGateway.csproj --verify-no-changes --verbosity detailed
+
+    - name: Run Unit Tests
+      run: |
+        dotnet test GraphQL.ApiGateway.UnitTests/GraphQL.ApiGateway.UnitTests.csproj --configuration Release --no-restore --verbosity normal --logger "trx;LogFileName=unit-test-results.trx" --collect:"XPlat Code Coverage"
+      continue-on-error: false
+
+    - name: Wait for PostgreSQL
+      run: |
+        timeout 30 bash -c 'until echo > /dev/tcp/localhost/5432; do sleep 1; done' || exit 1
+
+    - name: Run Integration Tests
+      run: |
+        dotnet test GraphQL.ApiGateway.IntegrationTests/GraphQL.ApiGateway.IntegrationTests.csproj --configuration Release --no-restore --verbosity normal --logger "trx;LogFileName=integration-test-results.trx" --collect:"XPlat Code Coverage"
+      continue-on-error: false
 
     - name: Build Docker image
       run: |
@@ -48,16 +81,23 @@ jobs:
 
     - name: Test Docker image
       run: |
-        docker run -d --name test-gateway -p 5000:80 graphql-gateway:latest
-        sleep 10
-        docker ps | grep test-gateway || (docker logs test-gateway && exit 1)
-        docker logs test-gateway | grep -i "started\|running\|listening" || \
-          (echo "No startup message in logs" && docker logs test-gateway && exit 1)
+        docker run -d --name test-gateway -p 8080:8080 \
+          -e Database__Host=host.docker.internal \
+          -e Database__Port=5432 \
+          -e Database__Database=sensordata \
+          -e Database__Username=postgres \
+          -e Database__Password=postgres \
+          --add-host=host.docker.internal:host-gateway \
+          graphql-gateway:latest
+        sleep 30
+        docker logs test-gateway
+        docker logs test-gateway | grep -E "(Application started|Starting|INF|listening)" || \
+          (echo "Application failed to start properly" && exit 1)
         docker stop test-gateway
         docker rm test-gateway
 
     - name: Log build info
       run: |
-        echo "Build completed successfully for DataIngestor.Service"
+        echo "Build completed successfully for GraphQL.ApiGateway"
         echo "Branch: ${{ github.ref }}"
         echo "Commit: ${{ github.sha }}"
