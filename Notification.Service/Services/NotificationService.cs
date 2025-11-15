@@ -26,8 +26,10 @@ public class NotificationService : INotificationService
     {
         try
         {
-            _logger.LogDebug("Sending notification: {EventType} from {ServiceName}", 
-                notification.EventType, notification.ServiceName);
+            _logger.LogDebug(
+                "Sending notification: {EventType} from {ServiceName}",
+                notification.EventType,
+                notification.ServiceName);
 
             await _hubContext.Clients.All.SendAsync("NotificationReceived", notification);
         }

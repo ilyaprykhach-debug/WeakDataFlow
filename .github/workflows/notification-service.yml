@@ -1,0 +1,79 @@
+name: Notification Service CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Notification.Service/**'
+      - 'Notification.Service.UnitTests/**'
+      - 'Notification.Service.IntegrationTests/**'
+      - '.github/workflows/notification-service.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Notification.Service/**'
+      - 'Notification.Service.UnitTests/**'
+      - 'Notification.Service.IntegrationTests/**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+      
+    - name: Restore dependencies
+      run: dotnet restore WeakDataFlow.sln
+
+    - name: Build
+      run: dotnet build Notification.Service/Notification.Service.csproj --configuration Release --no-restore
+
+    - name: Lint code
+      run: |
+        dotnet format Notification.Service/Notification.Service.csproj --verify-no-changes --verbosity detailed
+
+    - name: Run Unit Tests
+      run: |
+        dotnet test Notification.Service.UnitTests/Notification.Service.UnitTests.csproj --configuration Release --no-restore --verbosity normal --logger "trx;LogFileName=unit-test-results.trx" --collect:"XPlat Code Coverage"
+      continue-on-error: false
+
+    - name: Run Integration Tests
+      run: |
+        dotnet test Notification.Service.IntegrationTests/Notification.Service.IntegrationTests.csproj --configuration Release --no-restore --verbosity normal --logger "trx;LogFileName=integration-test-results.trx" --collect:"XPlat Code Coverage"
+      continue-on-error: false
+
+    - name: Build Docker image
+      run: |
+        docker build -t notification-service:latest -f Notification.Service/Dockerfile .
+
+    - name: Test Docker image
+      run: |
+        docker run -d --name test-notification -p 8080:8080 \
+          notification-service:latest
+        sleep 30
+        docker logs test-notification
+        docker logs test-notification | grep -E "(Application started|Starting|INF|listening)" || \
+          (echo "Application failed to start properly" && exit 1)
+        docker stop test-notification
+        docker rm test-notification
+
+    - name: Log build info
+      run: |
+        echo "Build completed successfully for Notification.Service"
+        echo "Branch: ${{ github.ref }}"
+        echo "Commit: ${{ github.sha }}"
+
