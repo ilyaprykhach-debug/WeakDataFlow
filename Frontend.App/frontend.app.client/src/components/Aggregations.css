@@ -1,0 +1,132 @@
+.aggregations {
+  margin-bottom: 2rem;
+}
+
+.aggregations h2 {
+  margin-bottom: 1rem;
+  color: #213547;
+}
+
+.aggregation-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.aggregation-controls .control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.aggregation-controls .control-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #666;
+}
+
+.aggregation-controls .control-group select,
+.aggregation-controls .control-group input {
+  padding: 0.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background-color: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.aggregation-controls .control-group select:hover,
+.aggregation-controls .control-group input:hover {
+  border-color: #646cff;
+}
+
+.aggregation-controls .control-group select:focus,
+.aggregation-controls .control-group input:focus {
+  outline: none;
+  border-color: #646cff;
+  box-shadow: 0 0 0 2px rgba(100, 108, 255, 0.2);
+}
+
+.aggregations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.aggregation-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.aggregation-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.aggregation-group {
+  margin: 0 0 1rem 0;
+  color: #213547;
+  font-size: 1.2rem;
+  border-bottom: 2px solid #646cff;
+  padding-bottom: 0.5rem;
+}
+
+.aggregation-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.stat-item:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #213547;
+  font-size: 1rem;
+}
+
+.no-data {
+  text-align: center;
+  padding: 2rem;
+  color: #888;
+  grid-column: 1 / -1;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .aggregations-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .aggregation-controls {
+    flex-direction: column;
+  }
+  
+  .aggregation-controls .control-group {
+    width: 100%;
+  }
+}
+

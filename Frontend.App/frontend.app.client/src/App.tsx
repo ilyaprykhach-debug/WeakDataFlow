@@ -1,35 +1,98 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import { ApolloProvider } from '@apollo/client';
+import { apolloClient } from './config/apollo';
+import { useSignalR } from './hooks/useSignalR';
+import { LatestValues } from './components/LatestValues';
+import { Charts } from './components/Charts';
+import { Aggregations } from './components/Aggregations';
+import { SearchFilter } from './components/SearchFilter';
+import { NotificationToast } from './components/NotificationToast';
+import type { NotificationEvent } from './types/graphql';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+function AppContent() {
+  const [notifications, setNotifications] = useState<NotificationEvent[]>([]);
+  const [activeTab, setActiveTab] = useState<'latest' | 'charts' | 'aggregations' | 'search'>('latest');
+
+  const handleNotification = (notification: NotificationEvent) => {
+    setNotifications((prev) => [notification, ...prev].slice(0, 5)); // Keep last 5 notifications
+  };
+
+  const { isConnected } = useSignalR(handleNotification);
+
+  const removeNotification = (index: number) => {
+    setNotifications((prev) => prev.filter((_, i) => i !== index));
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="app">
+      <header className="app-header">
+        <h1>Sensor Data Dashboard</h1>
+        <div className="header-info">
+          <div className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
+            <span className="status-dot"></span>
+            {isConnected ? 'Connected' : 'Disconnected'}
+          </div>
+        </div>
+      </header>
+
+      <nav className="app-nav">
+        <button
+          className={activeTab === 'latest' ? 'active' : ''}
+          onClick={() => setActiveTab('latest')}
+        >
+          Latest Values
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+        <button
+          className={activeTab === 'charts' ? 'active' : ''}
+          onClick={() => setActiveTab('charts')}
+        >
+          Charts
+        </button>
+        <button
+          className={activeTab === 'aggregations' ? 'active' : ''}
+          onClick={() => setActiveTab('aggregations')}
+        >
+          Aggregations
+        </button>
+        <button
+          className={activeTab === 'search' ? 'active' : ''}
+          onClick={() => setActiveTab('search')}
+        >
+          Search & Filter
+        </button>
+      </nav>
+
+      <main className="app-main">
+        <div className="notifications-container">
+          {notifications.map((notification, index) => (
+            <NotificationToast
+              key={index}
+              notification={notification}
+              onClose={() => removeNotification(index)}
+            />
+          ))}
+        </div>
+
+        {activeTab === 'latest' && <LatestValues />}
+        {activeTab === 'charts' && <Charts />}
+        {activeTab === 'aggregations' && <Aggregations />}
+        {activeTab === 'search' && <SearchFilter />}
+      </main>
+
+      <footer className="app-footer">
+        <p>© 2024 Sensor Data Dashboard - Powered by GraphQL & SignalR</p>
+      </footer>
+    </div>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <ApolloProvider client={apolloClient}>
+      <AppContent />
+    </ApolloProvider>
+  );
+}
+
+export default App;
