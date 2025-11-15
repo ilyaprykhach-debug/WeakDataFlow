@@ -30,6 +30,8 @@ public static class DataIngestorServiceCollectionExtensions
         .AddPolicyHandler(GetRetryPolicy(configuration))
         .AddPolicyHandler(GetCircuitBreakerPolicy());
 
+        services.AddHttpClient<INotificationClient, NotificationClient>();
+
         services.AddSingleton<IQueueService, RabbitMQService>();
         services.AddSingleton<IExternalApiService, ExternalApiService>();
         services.AddSingleton<ISensorDataProcessor, SensorDataProcessor>();

@@ -12,17 +12,20 @@ public class ExternalApiService : IExternalApiService
     private readonly ILogger<ExternalApiService> _logger;
     private readonly ExternalApiConnectionConfig _connectionConfig;
     private readonly ExternalApiHeadersConfig _headersConfig;
+    private readonly INotificationClient? _notificationClient;
 
     public ExternalApiService(
         HttpClient httpClient,
         ILogger<ExternalApiService> logger,
         IOptions<ExternalApiConnectionConfig> connectionConfig,
-        IOptions<ExternalApiHeadersConfig> headersConfig)
+        IOptions<ExternalApiHeadersConfig> headersConfig,
+        INotificationClient? notificationClient = null)
     {
         _httpClient = httpClient;
         _logger = logger;
         _connectionConfig = connectionConfig.Value;
         _headersConfig = headersConfig.Value;
+        _notificationClient = notificationClient;
     }
 
     public async Task<List<SensorReading>> FetchDataAsync(CancellationToken cancellationToken = default)
@@ -66,6 +69,26 @@ public class ExternalApiService : IExternalApiService
                 .ToList() ?? new List<SensorReading>();
 
             _logger.LogInformation("Fetched {Count} sensor readings from WeakApp API", sensorReadings.Count);
+
+            if (sensorReadings.Any() && _notificationClient != null)
+            {
+                _ = _notificationClient.NotifyDataReceivedFromApiAsync(
+                    sensorReadings.Select(r => new
+                    {
+                        r.Id,
+                        r.SensorId,
+                        r.Type,
+                        r.Location,
+                        r.Timestamp,
+                        r.EnergyConsumption,
+                        r.Co2,
+                        r.Pm25,
+                        r.Humidity,
+                        r.MotionDetected
+                    }),
+                    cancellationToken);
+            }
+
             return sensorReadings;
         }
         catch (Exception ex)

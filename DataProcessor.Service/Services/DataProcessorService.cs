@@ -1,6 +1,7 @@
 using DataProcessor.Service.Configuration;
 using DataProcessor.Service.Interfaces;
 using DataProcessor.Service.Models;
+using DataProcessor.Service.Services;
 using Microsoft.Extensions.Options;
 
 namespace DataProcessor.Service.Services;
@@ -45,6 +46,34 @@ public class DataProcessorService : IDataProcessor, IDisposable
         {
             _currentBatch.Add(message);
             _logger.LogDebug("Added message to batch. Current batch size: {BatchSize}", _currentBatch.Count);
+        }
+
+        try
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var notificationClient = scope.ServiceProvider.GetService<INotificationClient>();
+            if (notificationClient != null)
+            {
+                _ = notificationClient.NotifyDataReadFromQueueAsync(
+                    new
+                    {
+                        message.Id,
+                        message.SensorId,
+                        message.Type,
+                        message.Location,
+                        message.Timestamp,
+                        message.EnergyConsumption,
+                        message.Co2,
+                        message.Pm25,
+                        message.Humidity,
+                        message.MotionDetected
+                    },
+                    cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to send notification about data read from queue");
         }
 
         if (_currentBatch.Count >= _batchSize)
