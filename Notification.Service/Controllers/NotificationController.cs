@@ -30,8 +30,10 @@ public class NotificationController : ControllerBase
         try
         {
             await _notificationService.NotifyAsync(notification);
-            _logger.LogInformation("Notification received and broadcasted: {EventType} from {ServiceName}", 
-                notification.EventType, notification.ServiceName);
+            _logger.LogInformation(
+                "Notification received and broadcasted: {EventType} from {ServiceName}",
+                notification.EventType,
+                notification.ServiceName);
             return Ok();
         }
         catch (Exception ex)
