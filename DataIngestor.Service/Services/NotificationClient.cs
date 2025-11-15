@@ -74,7 +74,7 @@ public class NotificationClient : INotificationClient
             var json = JsonSerializer.Serialize(notification);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync($"{_notificationServiceUrl}/api/notification", content, cancellationToken);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("Notification service returned {StatusCode}", response.StatusCode);
