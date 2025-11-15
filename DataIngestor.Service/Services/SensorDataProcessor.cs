@@ -7,15 +7,18 @@ public class SensorDataProcessor : ISensorDataProcessor
     private readonly IExternalApiService _apiService;
     private readonly IQueueService _queueService;
     private readonly ILogger<SensorDataProcessor> _logger;
+    private readonly INotificationClient? _notificationClient;
 
     public SensorDataProcessor(
         IExternalApiService apiService,
         IQueueService queueService,
-        ILogger<SensorDataProcessor> logger)
+        ILogger<SensorDataProcessor> logger,
+        INotificationClient? notificationClient = null)
     {
         _apiService = apiService;
         _queueService = queueService;
         _logger = logger;
+        _notificationClient = notificationClient;
     }
 
     public async Task ProcessDataAsync(CancellationToken cancellationToken = default)
@@ -39,6 +42,25 @@ public class SensorDataProcessor : ISensorDataProcessor
             foreach (var reading in sensorReadings)
             {
                 await _queueService.PublishAsync(reading, "sensor-data", cancellationToken);
+
+                if (_notificationClient != null)
+                {
+                    _ = _notificationClient.NotifyDataPublishedToQueueAsync(
+                        new
+                        {
+                            reading.Id,
+                            reading.SensorId,
+                            reading.Type,
+                            reading.Location,
+                            reading.Timestamp,
+                            reading.EnergyConsumption,
+                            reading.Co2,
+                            reading.Pm25,
+                            reading.Humidity,
+                            reading.MotionDetected
+                        },
+                        cancellationToken);
+                }
             }
 
             _logger.LogInformation("Successfully ingested {Count} sensor readings", sensorReadings.Count);

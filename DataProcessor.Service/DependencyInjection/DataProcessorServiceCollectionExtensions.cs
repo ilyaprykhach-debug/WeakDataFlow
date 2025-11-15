@@ -24,6 +24,8 @@ public static class DataProcessorServiceCollectionExtensions
         services.AddDbContext<SensorDataDbContext>(options =>
             options.UseNpgsql(databaseConfig.ConnectionString));
 
+        services.AddHttpClient<INotificationClient, NotificationClient>();
+
         services.AddScoped<IDatabaseService, DatabaseService>();
         services.AddSingleton<IQueueConsumerService, RabbitMQConsumerService>();
         services.AddSingleton<IDataProcessor, DataProcessorService>();

@@ -1,6 +1,7 @@
 using DataProcessor.Service.Data;
 using DataProcessor.Service.Interfaces;
 using DataProcessor.Service.Models;
+using DataProcessor.Service.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace DataProcessor.Service.Services;
@@ -9,13 +10,16 @@ public class DatabaseService : IDatabaseService
 {
     private readonly SensorDataDbContext _context;
     private readonly ILogger<DatabaseService> _logger;
+    private readonly INotificationClient? _notificationClient;
 
     public DatabaseService(
         SensorDataDbContext context,
-        ILogger<DatabaseService> logger)
+        ILogger<DatabaseService> logger,
+        INotificationClient? notificationClient = null)
     {
         _context = context;
         _logger = logger;
+        _notificationClient = notificationClient;
     }
 
     public async Task<bool> IsConnectedAsync()
@@ -81,6 +85,25 @@ public class DatabaseService : IDatabaseService
 
             await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Batch of {Count} sensor readings saved", readingsList.Count);
+
+            if (_notificationClient != null)
+            {
+                _ = _notificationClient.NotifyDataSavedToDatabaseAsync(
+                    readingsList.Select(r => new
+                    {
+                        r.Id,
+                        r.SensorId,
+                        r.Type,
+                        r.Location,
+                        r.Timestamp,
+                        r.EnergyConsumption,
+                        r.Co2,
+                        r.Pm25,
+                        r.Humidity,
+                        r.MotionDetected
+                    }),
+                    cancellationToken);
+            }
         }
         catch (Exception ex)
         {
