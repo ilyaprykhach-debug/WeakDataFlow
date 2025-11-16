@@ -66,6 +66,12 @@ jobs:
         docker build --no-cache -t notification-service:latest -f Notification.Service/Dockerfile .
         docker build --no-cache -t frontend-app:latest -f Frontend.App/frontend.app.client/Dockerfile .
 
+    - name: Install docker-compose
+      run: |
+        sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+        docker-compose --version
+
     - name: Build with docker-compose
       run: |
         docker-compose build --no-cache
