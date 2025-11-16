@@ -20,10 +20,6 @@ export const SearchFilter = () => {
     variables: {
       skip: 0,
       take: 100,
-      location: location || undefined,
-      type: type || undefined,
-      startTime: startDate ? new Date(startDate).toISOString() : undefined,
-      endTime: endDate ? new Date(endDate + 'T23:59:59').toISOString() : undefined,
     },
     skip: false,
   });
@@ -31,23 +27,47 @@ export const SearchFilter = () => {
   const readings = data?.sensorReadingsWithPagination || [];
 
   const filteredReadings = readings.filter((reading) => {
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
-    return (
-      reading.location.toLowerCase().includes(search) ||
-      reading.type.toLowerCase().includes(search) ||
-      reading.sensorId.toLowerCase().includes(search)
-    );
+    // Client-side filtering
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      if (!(
+        reading.location.toLowerCase().includes(search) ||
+        reading.type.toLowerCase().includes(search) ||
+        reading.sensorId.toLowerCase().includes(search)
+      )) {
+        return false;
+      }
+    }
+    
+    if (location && reading.location !== location) {
+      return false;
+    }
+    
+    if (type && reading.type !== type) {
+      return false;
+    }
+    
+    if (startDate) {
+      const start = new Date(startDate);
+      if (new Date(reading.timestamp) < start) {
+        return false;
+      }
+    }
+    
+    if (endDate) {
+      const end = new Date(endDate + 'T23:59:59');
+      if (new Date(reading.timestamp) > end) {
+        return false;
+      }
+    }
+    
+    return true;
   });
 
   const handleSearch = async () => {
     await refetch({
       skip: 0,
       take: 100,
-      location: location || undefined,
-      type: type || undefined,
-      startTime: startDate ? new Date(startDate).toISOString() : undefined,
-      endTime: endDate ? new Date(endDate + 'T23:59:59').toISOString() : undefined,
     });
   };
 
@@ -60,10 +80,6 @@ export const SearchFilter = () => {
     await refetch({
       skip: 0,
       take: 100,
-      location: undefined,
-      type: undefined,
-      startTime: undefined,
-      endTime: undefined,
     });
   };
 

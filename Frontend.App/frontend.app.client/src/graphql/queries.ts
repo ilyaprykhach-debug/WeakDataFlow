@@ -18,21 +18,9 @@ export const GET_LATEST_SENSOR_READINGS = gql`
 `;
 
 export const GET_SENSOR_READINGS = gql`
-  query GetSensorReadings(
-    $skip: Int
-    $take: Int
-    $location: String
-    $type: String
-    $startTime: DateTime
-    $endTime: DateTime
-  ) {
+  query GetSensorReadings($skip: Int, $take: Int) {
     sensorReadingsWithPagination(
       pagination: { skip: $skip, take: $take }
-      where: {
-        location: { eq: $location }
-        type: { eq: $type }
-        timestamp: { gte: $startTime, lte: $endTime }
-      }
       order: [{ timestamp: DESC }]
     ) {
       id
@@ -78,7 +66,7 @@ export const GET_AGGREGATIONS_BY_TYPE = gql`
 `;
 
 export const GET_AGGREGATIONS_BY_TIME_PERIOD = gql`
-  query GetAggregationsByTimePeriod($period: String!, $startTime: DateTime, $endTime: DateTime) {
+  query GetAggregationsByTimePeriod($period: String!) {
     aggregationsByTimePeriod(period: $period) {
       groupBy
       count

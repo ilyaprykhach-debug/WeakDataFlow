@@ -1,3 +1,5 @@
+using HotChocolate.Types;
+
 namespace GraphQL.ApiGateway.GraphQL.Inputs;
 
 public class PaginationInput : InputObjectType<PaginationInputData>
@@ -7,11 +9,13 @@ public class PaginationInput : InputObjectType<PaginationInputData>
         descriptor
             .Field(f => f.Skip)
             .Description("Number of items to skip")
+            .Type<IntType>()
             .DefaultValue(0);
 
         descriptor
             .Field(f => f.Take)
             .Description("Number of items to take")
+            .Type<IntType>()
             .DefaultValue(10);
     }
 }

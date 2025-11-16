@@ -15,7 +15,7 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState<'latest' | 'charts' | 'aggregations' | 'search'>('latest');
 
   const handleNotification = (notification: NotificationEvent) => {
-    setNotifications((prev) => [notification, ...prev].slice(0, 5)); // Keep last 5 notifications
+    setNotifications((prev) => [notification, ...prev].slice(0, 5));
   };
 
   const { isConnected } = useSignalR(handleNotification);
@@ -81,7 +81,7 @@ function AppContent() {
       </main>
 
       <footer className="app-footer">
-        <p>© 2024 Sensor Data Dashboard - Powered by GraphQL & SignalR</p>
+        <p>© Developed by Ilya Prykhach</p>
       </footer>
     </div>
   );

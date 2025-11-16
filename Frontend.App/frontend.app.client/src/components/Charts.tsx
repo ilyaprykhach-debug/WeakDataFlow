@@ -16,24 +16,11 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useState } from 'react';
-import { subDays, subHours } from 'date-fns';
 import './Charts.css';
 
 export const Charts = () => {
   const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d'>('24h');
   const [chartType, setChartType] = useState<'time' | 'location' | 'type'>('time');
-
-  const getStartTime = () => {
-    const now = new Date();
-    switch (timeRange) {
-      case '1h':
-        return subHours(now, 1).toISOString();
-      case '24h':
-        return subDays(now, 1).toISOString();
-      case '7d':
-        return subDays(now, 7).toISOString();
-    }
-  };
 
   const { data: timeData, loading: timeLoading, error: timeError } = useQuery<{
     aggregationsByTimePeriod: AggregationResult[];
@@ -50,10 +37,6 @@ export const Charts = () => {
     variables: {
       skip: 0,
       take: 100,
-      startTime: getStartTime(),
-      location: undefined,
-      type: undefined,
-      endTime: undefined,
     },
     skip: chartType === 'time',
   });

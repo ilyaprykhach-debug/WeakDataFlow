@@ -11,6 +11,5 @@
 
 	<ItemGroup>
 		<None Include="Dockerfile" />
-		<None Include="nginx.conf" />
 	</ItemGroup>
 </Project>
