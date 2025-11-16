@@ -22,13 +22,23 @@ export const Charts = () => {
   const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d'>('24h');
   const [chartType, setChartType] = useState<'time' | 'location' | 'type'>('time');
 
+  const getTimeRangeVariables = () => {
+    if (timeRange === '1h') {
+      return { period: 'hour' as const, hoursBack: 1 };
+    } else if (timeRange === '24h') {
+      return { period: 'hour' as const, hoursBack: 24 };
+    } else {
+      return { period: 'day' as const, daysBack: 7 };
+    }
+  };
+
   const { data: timeData, loading: timeLoading, error: timeError } = useQuery<{
     aggregationsByTimePeriod: AggregationResult[];
   }>(GET_AGGREGATIONS_BY_TIME_PERIOD, {
-    variables: {
-      period: timeRange === '1h' || timeRange === '24h' ? 'hour' : 'day',
-    },
+    variables: getTimeRangeVariables(),
     skip: chartType !== 'time',
+    fetchPolicy: 'cache-and-network',
+    notifyOnNetworkStatusChange: true,
   });
 
   const { data: readingsData, loading: readingsLoading, error: readingsError } = useQuery<{

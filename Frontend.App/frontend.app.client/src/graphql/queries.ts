@@ -66,8 +66,8 @@ export const GET_AGGREGATIONS_BY_TYPE = gql`
 `;
 
 export const GET_AGGREGATIONS_BY_TIME_PERIOD = gql`
-  query GetAggregationsByTimePeriod($period: String!) {
-    aggregationsByTimePeriod(period: $period) {
+  query GetAggregationsByTimePeriod($period: String!, $hoursBack: Int, $daysBack: Int) {
+    aggregationsByTimePeriod(period: $period, hoursBack: $hoursBack, daysBack: $daysBack) {
       groupBy
       count
       averageEnergyConsumption

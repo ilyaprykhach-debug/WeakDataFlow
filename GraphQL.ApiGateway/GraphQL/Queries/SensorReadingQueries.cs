@@ -147,9 +147,22 @@ public class SensorReadingQueries
 
     public async Task<List<AggregationResult>> GetAggregationsByTimePeriod(
         [Service] SensorDataDbContext context,
-        string period = "hour")
+        string period = "hour",
+        int? hoursBack = null,
+        int? daysBack = null)
     {
         var query = context.SensorReadings.AsQueryable();
+
+        if (hoursBack.HasValue)
+        {
+            var cutoffTime = DateTime.UtcNow.AddHours(-hoursBack.Value);
+            query = query.Where(r => r.Timestamp >= cutoffTime);
+        }
+        else if (daysBack.HasValue)
+        {
+            var cutoffTime = DateTime.UtcNow.AddDays(-daysBack.Value);
+            query = query.Where(r => r.Timestamp >= cutoffTime);
+        }
 
         return period.ToLower() switch
         {
