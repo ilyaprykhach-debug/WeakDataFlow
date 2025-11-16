@@ -7,18 +7,18 @@ public class SensorDataProcessor : ISensorDataProcessor
     private readonly IExternalApiService _apiService;
     private readonly IQueueService _queueService;
     private readonly ILogger<SensorDataProcessor> _logger;
-    private readonly INotificationClient? _notificationClient;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
     public SensorDataProcessor(
         IExternalApiService apiService,
         IQueueService queueService,
         ILogger<SensorDataProcessor> logger,
-        INotificationClient? notificationClient = null)
+        IServiceScopeFactory serviceScopeFactory)
     {
         _apiService = apiService;
         _queueService = queueService;
         _logger = logger;
-        _notificationClient = notificationClient;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
     public async Task ProcessDataAsync(CancellationToken cancellationToken = default)
@@ -43,23 +43,32 @@ public class SensorDataProcessor : ISensorDataProcessor
             {
                 await _queueService.PublishAsync(reading, "sensor-data", cancellationToken);
 
-                if (_notificationClient != null)
+                try
                 {
-                    _ = _notificationClient.NotifyDataPublishedToQueueAsync(
-                        new
-                        {
-                            reading.Id,
-                            reading.SensorId,
-                            reading.Type,
-                            reading.Location,
-                            reading.Timestamp,
-                            reading.EnergyConsumption,
-                            reading.Co2,
-                            reading.Pm25,
-                            reading.Humidity,
-                            reading.MotionDetected
-                        },
-                        cancellationToken);
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var notificationClient = scope.ServiceProvider.GetService<INotificationClient>();
+                    if (notificationClient != null)
+                    {
+                        _ = notificationClient.NotifyDataPublishedToQueueAsync(
+                            new
+                            {
+                                reading.Id,
+                                reading.SensorId,
+                                reading.Type,
+                                reading.Location,
+                                reading.Timestamp,
+                                reading.EnergyConsumption,
+                                reading.Co2,
+                                reading.Pm25,
+                                reading.Humidity,
+                                reading.MotionDetected
+                            },
+                            cancellationToken);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to send notification about data published to queue");
                 }
             }
 

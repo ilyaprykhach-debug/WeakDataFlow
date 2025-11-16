@@ -1,7 +1,6 @@
 using DataProcessor.Service.Configuration;
 using DataProcessor.Service.Interfaces;
 using DataProcessor.Service.Models;
-using DataProcessor.Service.Services;
 using Microsoft.Extensions.Options;
 
 namespace DataProcessor.Service.Services;

@@ -1,7 +1,7 @@
 using DataIngestor.Service.Interfaces;
 using DataIngestor.Service.Models;
 using DataIngestor.Service.Services;
-using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -12,6 +12,9 @@ public class SensorDataProcessorTests
     private readonly Mock<IExternalApiService> _mockApiService;
     private readonly Mock<IQueueService> _mockQueueService;
     private readonly Mock<ILogger<SensorDataProcessor>> _mockLogger;
+    private readonly Mock<IServiceScopeFactory> _mockServiceScopeFactory;
+    private readonly Mock<IServiceScope> _mockServiceScope;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;
     private readonly SensorDataProcessor _processor;
 
     public SensorDataProcessorTests()
@@ -19,11 +22,19 @@ public class SensorDataProcessorTests
         _mockApiService = new Mock<IExternalApiService>();
         _mockQueueService = new Mock<IQueueService>();
         _mockLogger = new Mock<ILogger<SensorDataProcessor>>();
+        _mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
+        _mockServiceScope = new Mock<IServiceScope>();
+        _mockServiceProvider = new Mock<IServiceProvider>();
+
+        _mockServiceScopeFactory.Setup(x => x.CreateScope()).Returns(_mockServiceScope.Object);
+        _mockServiceScope.Setup(x => x.ServiceProvider).Returns(_mockServiceProvider.Object);
+        _mockServiceProvider.Setup(x => x.GetService(typeof(INotificationClient))).Returns((INotificationClient?)null);
 
         _processor = new SensorDataProcessor(
             _mockApiService.Object,
             _mockQueueService.Object,
-            _mockLogger.Object);
+            _mockLogger.Object,
+            _mockServiceScopeFactory.Object);
     }
 
     [Fact]

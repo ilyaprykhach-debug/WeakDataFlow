@@ -32,28 +32,55 @@ jobs:
 
     - name: TypeScript type check
       working-directory: ./Frontend.App/frontend.app.client
-      run: npx tsc --noEmit
+      run: |
+        npx tsc --noEmit
+        npx tsc --build
 
     - name: Lint code
       working-directory: ./Frontend.App/frontend.app.client
       run: |
         npm run lint
+      continue-on-error: false
 
     - name: Build project
       working-directory: ./Frontend.App/frontend.app.client
-      run: npm run build
+      run: |
+        npm run build
+      env:
+        VITE_GRAPHQL_URI: http://localhost:5126/graphql
+        VITE_NOTIFICATION_URI: http://localhost:5272/notificationHub
+
+    - name: Verify build output
+      working-directory: ./Frontend.App/frontend.app.client
+      run: |
+        if [ ! -d "dist" ]; then
+          echo "Build output directory 'dist' not found"
+          exit 1
+        fi
+        if [ ! -f "dist/index.html" ]; then
+          echo "Build output file 'dist/index.html' not found"
+          exit 1
+        fi
+        echo "Build output verified successfully"
+        ls -la dist/ | head -20
 
     - name: Build Docker image
       run: |
-        docker build -t frontend-app:latest -f Frontend.App/frontend.app.client/Dockerfile .
+        docker build \
+          --build-arg VITE_GRAPHQL_URI=http://localhost:5126/graphql \
+          --build-arg VITE_NOTIFICATION_URI=http://localhost:5272/notificationHub \
+          -t frontend-app:latest \
+          -f Frontend.App/frontend.app.client/Dockerfile .
 
     - name: Test Docker image
       run: |
         docker run -d --name frontend-test -p 3000:80 frontend-app:latest
         sleep 10
         docker ps | grep frontend-test || (docker logs frontend-test && exit 1)
+        docker logs frontend-test
         curl -f http://localhost:3000 > /dev/null || (docker logs frontend-test && exit 1)
-        curl -s http://localhost:3000 | head -n 5
+        curl -s http://localhost:3000 | grep -E "(html|title|root)" || \
+          (echo "HTML content validation failed" && docker logs frontend-test && exit 1)
         docker stop frontend-test
         docker rm frontend-test
 
@@ -62,3 +89,5 @@ jobs:
         echo "Build completed successfully for Frontend App"
         echo "Branch: ${{ github.ref }}"
         echo "Commit: ${{ github.sha }}"
+        echo "Node version: $(node --version)"
+        echo "NPM version: $(npm --version)"

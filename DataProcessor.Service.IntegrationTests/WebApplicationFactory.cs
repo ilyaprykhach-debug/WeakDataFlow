@@ -45,13 +45,11 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
 
     public async Task InitializeAsync()
     {
-        // Ensure RabbitMQ container is started before configuring the application
         await _containerInitializer.Value;
     }
 
     public new async Task DisposeAsync()
     {
-        // Don't dispose the container here - it's shared across all test instances
         await base.DisposeAsync();
     }
 
@@ -61,8 +59,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
         
         builder.ConfigureAppConfiguration((context, config) =>
         {
-            // Ensure container is initialized before getting the port
-            // Use Task.Run to avoid potential deadlocks in synchronous context
             var container = Task.Run(async () => await _containerInitializer.Value).GetAwaiter().GetResult();
             var rabbitMqPort = container.GetMappedPublicPort(5672);
             
@@ -93,7 +89,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
                 services.Remove(descriptor);
             }
 
-            // Use unique database name for each factory instance to ensure test isolation
             services.AddDbContext<SensorDataDbContext>(options =>
             {
                 options.UseInMemoryDatabase(_uniqueDbName);
@@ -105,7 +100,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
     {
         get
         {
-            // Use Task.Run to avoid potential deadlocks in synchronous context
             var container = Task.Run(async () => await _containerInitializer.Value).GetAwaiter().GetResult();
             return container.GetMappedPublicPort(5672);
         }

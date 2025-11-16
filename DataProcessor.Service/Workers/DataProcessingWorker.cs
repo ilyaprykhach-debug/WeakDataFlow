@@ -1,6 +1,4 @@
-using DataProcessor.Service.Configuration;
 using DataProcessor.Service.Interfaces;
-using Microsoft.Extensions.Options;
 
 namespace DataProcessor.Service.Workers;
 

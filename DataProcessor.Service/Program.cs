@@ -29,7 +29,6 @@ try
 
     var app = builder.Build();
 
-    // Apply database migrations
     if (!isTesting)
     {
         using (var scope = app.Services.CreateScope())

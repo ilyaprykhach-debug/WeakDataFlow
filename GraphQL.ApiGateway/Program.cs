@@ -1,5 +1,6 @@
 using GraphQL.ApiGateway.Configuration;
 using GraphQL.ApiGateway.Data;
+using GraphQL.ApiGateway.GraphQL.Inputs;
 using GraphQL.ApiGateway.GraphQL.Queries;
 using GraphQL.ApiGateway.GraphQL.Types;
 using HotChocolate.AspNetCore;
@@ -19,6 +20,7 @@ builder.Services
     .AddTypeExtension<SensorReadingQueries>()
     .AddType<SensorReadingType>()
     .AddType<AggregationResultType>()
+    .AddType<PaginationInput>()
     .AddFiltering()
     .AddSorting()
     .AddProjections()

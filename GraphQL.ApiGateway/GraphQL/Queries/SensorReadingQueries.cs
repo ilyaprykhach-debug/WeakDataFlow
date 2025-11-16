@@ -14,7 +14,7 @@ public class SensorReadingQueries
     [UseFiltering(typeof(SensorReadingFilterInput))]
     [UseSorting]
     public IQueryable<SensorReading> GetSensorReadings(
-        [Service(ServiceKind.Resolver)] SensorDataDbContext context)
+        [Service] SensorDataDbContext context)
     {
         return context.SensorReadings;
     }
@@ -23,7 +23,7 @@ public class SensorReadingQueries
     [UseFiltering(typeof(SensorReadingFilterInput))]
     [UseSorting]
     public IQueryable<SensorReading> GetSensorReadingsWithPagination(
-        [Service(ServiceKind.Resolver)] SensorDataDbContext context,
+        [Service] SensorDataDbContext context,
         PaginationInputData? pagination = null)
     {
         var query = context.SensorReadings.AsQueryable();
@@ -39,7 +39,7 @@ public class SensorReadingQueries
     }
 
     public async Task<SensorReading?> GetSensorReadingById(
-        [Service(ServiceKind.Resolver)] SensorDataDbContext context,
+        [Service] SensorDataDbContext context,
         string id)
     {
         return await context.SensorReadings
@@ -49,7 +49,7 @@ public class SensorReadingQueries
     [UseProjection]
     [UseFiltering(typeof(SensorReadingFilterInput))]
     public IQueryable<SensorReading> GetSensorReadingsByLocation(
-        [Service(ServiceKind.Resolver)] SensorDataDbContext context,
+        [Service] SensorDataDbContext context,
         string location)
     {
         return context.SensorReadings
@@ -59,7 +59,7 @@ public class SensorReadingQueries
     [UseProjection]
     [UseFiltering(typeof(SensorReadingFilterInput))]
     public IQueryable<SensorReading> GetSensorReadingsByType(
-        [Service(ServiceKind.Resolver)] SensorDataDbContext context,
+        [Service] SensorDataDbContext context,
         string type)
     {
         return context.SensorReadings
@@ -69,7 +69,7 @@ public class SensorReadingQueries
     [UseProjection]
     [UseFiltering(typeof(SensorReadingFilterInput))]
     public IQueryable<SensorReading> GetSensorReadingsByTimeRange(
-        [Service(ServiceKind.Resolver)] SensorDataDbContext context,
+        [Service] SensorDataDbContext context,
         DateTime startTime,
         DateTime endTime)
     {
@@ -78,7 +78,7 @@ public class SensorReadingQueries
     }
 
     public async Task<List<AggregationResult>> GetAggregationsByLocation(
-        [Service(ServiceKind.Resolver)] SensorDataDbContext context,
+        [Service] SensorDataDbContext context,
         DateTime? startTime = null,
         DateTime? endTime = null)
     {
@@ -112,7 +112,7 @@ public class SensorReadingQueries
     }
 
     public async Task<List<AggregationResult>> GetAggregationsByType(
-        [Service(ServiceKind.Resolver)] SensorDataDbContext context,
+        [Service] SensorDataDbContext context,
         DateTime? startTime = null,
         DateTime? endTime = null)
     {
@@ -146,62 +146,131 @@ public class SensorReadingQueries
     }
 
     public async Task<List<AggregationResult>> GetAggregationsByTimePeriod(
-        [Service(ServiceKind.Resolver)] SensorDataDbContext context,
-        string period = "hour")
+        [Service] SensorDataDbContext context,
+        string period = "hour",
+        int? hoursBack = null,
+        int? daysBack = null)
     {
         var query = context.SensorReadings.AsQueryable();
 
+        if (hoursBack.HasValue)
+        {
+            var cutoffTime = DateTime.UtcNow.AddHours(-hoursBack.Value);
+            query = query.Where(r => r.Timestamp >= cutoffTime);
+        }
+        else if (daysBack.HasValue)
+        {
+            var cutoffTime = DateTime.UtcNow.AddDays(-daysBack.Value);
+            query = query.Where(r => r.Timestamp >= cutoffTime);
+        }
+
         return period.ToLower() switch
         {
-            "hour" => await query
-                .GroupBy(r => new { r.Timestamp.Year, r.Timestamp.Month, r.Timestamp.Day, r.Timestamp.Hour })
-                .Select(g => new AggregationResult
-                {
-                    GroupBy = $"{g.Key.Year}-{g.Key.Month:D2}-{g.Key.Day:D2} {g.Key.Hour:D2}:00",
-                    Count = g.Count(),
-                    AverageEnergyConsumption = g.Average(r => r.EnergyConsumption),
-                    AverageCo2 = g.Average(r => (decimal?)r.Co2),
-                    AveragePm25 = g.Average(r => (decimal?)r.Pm25),
-                    AverageHumidity = g.Average(r => (decimal?)r.Humidity),
-                    TotalEnergyConsumption = g.Sum(r => r.EnergyConsumption)
-                })
-                .OrderBy(r => r.GroupBy)
-                .ToListAsync(),
-
-            "day" => await query
-                .GroupBy(r => new { r.Timestamp.Year, r.Timestamp.Month, r.Timestamp.Day })
-                .Select(g => new AggregationResult
-                {
-                    GroupBy = $"{g.Key.Year}-{g.Key.Month:D2}-{g.Key.Day:D2}",
-                    Count = g.Count(),
-                    AverageEnergyConsumption = g.Average(r => r.EnergyConsumption),
-                    AverageCo2 = g.Average(r => (decimal?)r.Co2),
-                    AveragePm25 = g.Average(r => (decimal?)r.Pm25),
-                    AverageHumidity = g.Average(r => (decimal?)r.Humidity),
-                    TotalEnergyConsumption = g.Sum(r => r.EnergyConsumption)
-                })
-                .OrderBy(r => r.GroupBy)
-                .ToListAsync(),
-
+            "hour" => await GetHourAggregations(query),
+            "day" => await GetDayAggregations(query),
             "week" => await GetWeekAggregations(query),
-
-            "month" => await query
-                .GroupBy(r => new { r.Timestamp.Year, r.Timestamp.Month })
-                .Select(g => new AggregationResult
-                {
-                    GroupBy = $"{g.Key.Year}-{g.Key.Month:D2}",
-                    Count = g.Count(),
-                    AverageEnergyConsumption = g.Average(r => r.EnergyConsumption),
-                    AverageCo2 = g.Average(r => (decimal?)r.Co2),
-                    AveragePm25 = g.Average(r => (decimal?)r.Pm25),
-                    AverageHumidity = g.Average(r => (decimal?)r.Humidity),
-                    TotalEnergyConsumption = g.Sum(r => r.EnergyConsumption)
-                })
-                .OrderBy(r => r.GroupBy)
-                .ToListAsync(),
-
+            "month" => await GetMonthAggregations(query),
             _ => throw new ArgumentException($"Invalid period: {period}. Supported values: hour, day, week, month")
         };
+    }
+
+    private async Task<List<AggregationResult>> GetHourAggregations(IQueryable<SensorReading> query)
+    {
+        var results = await query
+            .GroupBy(r => new { r.Timestamp.Year, r.Timestamp.Month, r.Timestamp.Day, r.Timestamp.Hour })
+            .Select(g => new
+            {
+                g.Key.Year,
+                g.Key.Month,
+                g.Key.Day,
+                g.Key.Hour,
+                Count = g.Count(),
+                AverageEnergyConsumption = g.Average(r => r.EnergyConsumption),
+                AverageCo2 = g.Average(r => (decimal?)r.Co2),
+                AveragePm25 = g.Average(r => (decimal?)r.Pm25),
+                AverageHumidity = g.Average(r => (decimal?)r.Humidity),
+                TotalEnergyConsumption = g.Sum(r => r.EnergyConsumption)
+            })
+            .OrderBy(r => r.Year)
+            .ThenBy(r => r.Month)
+            .ThenBy(r => r.Day)
+            .ThenBy(r => r.Hour)
+            .ToListAsync();
+
+        return results.Select(g => new AggregationResult
+        {
+            GroupBy = $"{g.Year}-{g.Month:D2}-{g.Day:D2} {g.Hour:D2}:00",
+            Count = g.Count,
+            AverageEnergyConsumption = g.AverageEnergyConsumption,
+            AverageCo2 = g.AverageCo2,
+            AveragePm25 = g.AveragePm25,
+            AverageHumidity = g.AverageHumidity,
+            TotalEnergyConsumption = g.TotalEnergyConsumption
+        }).ToList();
+    }
+
+    private async Task<List<AggregationResult>> GetDayAggregations(IQueryable<SensorReading> query)
+    {
+        var results = await query
+            .GroupBy(r => new { r.Timestamp.Year, r.Timestamp.Month, r.Timestamp.Day })
+            .Select(g => new
+            {
+                g.Key.Year,
+                g.Key.Month,
+                g.Key.Day,
+                Count = g.Count(),
+                AverageEnergyConsumption = g.Average(r => r.EnergyConsumption),
+                AverageCo2 = g.Average(r => (decimal?)r.Co2),
+                AveragePm25 = g.Average(r => (decimal?)r.Pm25),
+                AverageHumidity = g.Average(r => (decimal?)r.Humidity),
+                TotalEnergyConsumption = g.Sum(r => r.EnergyConsumption)
+            })
+            .OrderBy(r => r.Year)
+            .ThenBy(r => r.Month)
+            .ThenBy(r => r.Day)
+            .ToListAsync();
+
+        return results.Select(g => new AggregationResult
+        {
+            GroupBy = $"{g.Year}-{g.Month:D2}-{g.Day:D2}",
+            Count = g.Count,
+            AverageEnergyConsumption = g.AverageEnergyConsumption,
+            AverageCo2 = g.AverageCo2,
+            AveragePm25 = g.AveragePm25,
+            AverageHumidity = g.AverageHumidity,
+            TotalEnergyConsumption = g.TotalEnergyConsumption
+        }).ToList();
+    }
+
+    private async Task<List<AggregationResult>> GetMonthAggregations(IQueryable<SensorReading> query)
+    {
+        var results = await query
+            .GroupBy(r => new { r.Timestamp.Year, r.Timestamp.Month })
+            .Select(g => new
+            {
+                g.Key.Year,
+                g.Key.Month,
+                Count = g.Count(),
+                AverageEnergyConsumption = g.Average(r => r.EnergyConsumption),
+                AverageCo2 = g.Average(r => (decimal?)r.Co2),
+                AveragePm25 = g.Average(r => (decimal?)r.Pm25),
+                AverageHumidity = g.Average(r => (decimal?)r.Humidity),
+                TotalEnergyConsumption = g.Sum(r => r.EnergyConsumption)
+            })
+            .OrderBy(r => r.Year)
+            .ThenBy(r => r.Month)
+            .ToListAsync();
+
+        return results.Select(g => new AggregationResult
+        {
+            GroupBy = $"{g.Year}-{g.Month:D2}",
+            Count = g.Count,
+            AverageEnergyConsumption = g.AverageEnergyConsumption,
+            AverageCo2 = g.AverageCo2,
+            AveragePm25 = g.AveragePm25,
+            AverageHumidity = g.AverageHumidity,
+            TotalEnergyConsumption = g.TotalEnergyConsumption
+        }).ToList();
     }
 
     private async Task<List<AggregationResult>> GetWeekAggregations(IQueryable<SensorReading> query)
