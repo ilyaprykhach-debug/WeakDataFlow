@@ -58,19 +58,28 @@ jobs:
         npx tsc --noEmit || echo "TypeScript check completed"
         npm run build
 
-    - name: Build all Docker images
+    - name: Build all Docker images individually
       run: |
         docker build --no-cache -t data-ingestor:latest -f DataIngestor.Service/Dockerfile .
         docker build --no-cache -t data-processor:latest -f DataProcessor.Service/Dockerfile .
         docker build --no-cache -t graphql-gateway:latest -f GraphQL.ApiGateway/Dockerfile .
         docker build --no-cache -t notification-service:latest -f Notification.Service/Dockerfile .
-        docker build  --no-cache -t frontend-app:latest -f Frontend.App/frontend.app.client/Dockerfile .
+        docker build --no-cache -t frontend-app:latest -f Frontend.App/frontend.app.client/Dockerfile .
+
+    - name: Build with docker-compose
+      run: |
+        docker-compose build --no-cache
+
+    - name: Verify docker-compose configuration
+      run: |
+        docker-compose config --quiet
 
     - name: Log build summary
       run: |
         echo "FULL SOLUTION BUILD SUMMARY"
         echo ".NET projects: Built successfully"
         echo "Frontend: Built successfully" 
-        echo "Docker images: Built for available projects"
+        echo "Docker images: Built individually and via docker-compose"
+        echo "Docker-compose configuration: Verified"
         echo "Branch: ${{ github.ref }}"
         echo "Commit: ${{ github.sha }}"
