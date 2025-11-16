@@ -1,12 +1,9 @@
-using DataIngestor.Service.Interfaces;
 using DataIngestor.Service.Models;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
 using Testcontainers.RabbitMq;
-using Xunit;
 
 namespace DataIngestor.Service.IntegrationTests;
 

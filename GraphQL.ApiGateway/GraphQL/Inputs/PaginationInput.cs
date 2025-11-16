@@ -1,5 +1,3 @@
-using HotChocolate.Types;
-
 namespace GraphQL.ApiGateway.GraphQL.Inputs;
 
 public class PaginationInput : InputObjectType<PaginationInputData>

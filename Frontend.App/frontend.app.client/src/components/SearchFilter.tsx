@@ -27,7 +27,6 @@ export const SearchFilter = () => {
   const readings = data?.sensorReadingsWithPagination || [];
 
   const filteredReadings = readings.filter((reading) => {
-    // Client-side filtering
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       if (!(

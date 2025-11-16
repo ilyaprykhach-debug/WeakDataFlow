@@ -43,7 +43,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 services.Remove(descriptor);
             }
 
-            // Use unique database name for each factory instance to ensure test isolation
             services.AddDbContext<SensorDataDbContext>(options =>
             {
                 options.UseInMemoryDatabase(_uniqueDbName);

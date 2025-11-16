@@ -1,5 +1,4 @@
 ﻿using DataIngestor.Service.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace DataIngestor.Service.Services;
 

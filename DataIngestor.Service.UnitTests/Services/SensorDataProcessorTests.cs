@@ -1,7 +1,6 @@
 using DataIngestor.Service.Interfaces;
 using DataIngestor.Service.Models;
 using DataIngestor.Service.Services;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
