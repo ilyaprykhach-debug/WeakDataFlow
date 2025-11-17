@@ -2,7 +2,7 @@ import { gql } from '@apollo/client';
 
 export const GET_LATEST_SENSOR_READINGS = gql`
   query GetLatestSensorReadings($take: Int) {
-    sensorReadingsWithPagination(pagination: { take: $take, skip: 0 }, order: [{ timestamp: DESC }]) {
+    sensorReadingsWithPagination(pagination: { take: $take, skip: 0 }) {
       id
       sensorId
       type
@@ -21,7 +21,6 @@ export const GET_SENSOR_READINGS = gql`
   query GetSensorReadings($skip: Int, $take: Int) {
     sensorReadingsWithPagination(
       pagination: { skip: $skip, take: $take }
-      order: [{ timestamp: DESC }]
     ) {
       id
       sensorId
