@@ -21,12 +21,14 @@ public class SensorReadingQueries
 
     [UseProjection]
     [UseFiltering(typeof(SensorReadingFilterInput))]
-    [UseSorting]
     public IQueryable<SensorReading> GetSensorReadingsWithPagination(
         [Service] SensorDataDbContext context,
         PaginationInputData? pagination = null)
     {
-        var query = context.SensorReadings.AsQueryable();
+        // Apply default sorting by timestamp DESC to ensure latest values first
+        var query = context.SensorReadings
+            .OrderByDescending(r => r.Timestamp)
+            .AsQueryable();
 
         if (pagination != null)
         {
